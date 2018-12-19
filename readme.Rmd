@@ -90,11 +90,12 @@ evs_map <- world %>%
 
 
 theme_info <- 
+      theme_tufte() +
   theme(axis.line = element_blank(), axis.text.x = element_blank(),
           axis.text.y = element_blank(), axis.ticks = element_blank(),
           axis.title.x = element_blank(),
-          axis.title.y = element_blank()) +
-    theme_tufte() 
+          axis.title.y = element_blank()) 
+
 
   
 ```
