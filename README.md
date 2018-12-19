@@ -1,52 +1,10 @@
----
-title: "readme"
-author: "Alexandru Cernat"
-date: "18 December 2018"
-output:
-  md_document:
-    variant: markdown_github
----
-
-```{r setup, include=FALSE}
-# Admin -------------------------------------------------------------------
-
-# knitr options
-knitr::opts_chunk$set(echo = T, warning = F, error = F)
-
-# create folders and unzip
-dir.create("./data")
-dir.create("./output")
-unzip("./data/ZA7500_v1-0-0.dta.zip", exdir = "./data")
-
-# little function for nice table
-source("desc_tab.R")
-
-# little function to relable
-source("relabel.R") 
-
-# install packages and load
-pkg <- c("tidyverse", "ggthemes", "plotly", "haven",
-         "maps", "mapdata", "ggmap", "scales")
-
-# install.packages(pkg, dependencies = T)
-sapply(pkg, library, character.only = T)
-
-# load data
-evs <- read_dta("./data/ZA7500_v1-0-0.dta")
-
-```
-
 This is an exercise showing what exciting research can be done with open software and open data. Here we are going to look at the pre-release of EVS 2018:
 
-EVS (2018): European Values Study 2017: Integrated Dataset (EVS 2017). GESIS Data Archive, Cologne. ZA7500 Data file Version 1.0.0, doi:10.4232/1.13090
+EVS (2018): European Values Study 2017: Integrated Dataset (EVS 2017). GESIS Data Archive, Cologne. ZA7500 Data file Version 1.0.0, <doi:10.4232/1.13090>
 
-You can freely donwload the data here:
-https://dbk.gesis.org/dbksearch/sdesc2.asp?no=7500&db=e&doi=10.4232/1.13090
+You can freely donwload the data here: <https://dbk.gesis.org/dbksearch/sdesc2.asp?no=7500&db=e&doi=10.4232/1.13090>
 
-
-
-```{r}
-
+``` r
 # Clean data --------------------------------------------------------------
 
 
@@ -61,13 +19,9 @@ vars <- c("id_cocas", "country", "c_abrv",
 evs_small <- evs %>% 
   select(vars) %>% # select variables
   mutate_all(funs(ifelse(. < 0, NA, .))) # code missing
-
-
 ```
 
-
-
-```{r}
+``` r
 # get full names in new variable
 evs_small$cntry <- relabel(evs$country)
 
@@ -83,7 +37,11 @@ cntry_info <- evs_small %>%
   mutate(v171 = ifelse(v171 == 7 , NA, v171),
          v171 = 3 - v171) %>% #reverse
   summarize_all(mean, na.rm = T)
-  
+```
+
+    ## Adding missing grouping variables: `cntry`
+
+``` r
 # join data
 evs_map <- world %>% 
   left_join(cntry_info, by = c("region" = "cntry"))
@@ -95,13 +53,9 @@ theme_info <-
           axis.title.x = element_blank(),
           axis.title.y = element_blank()) +
     theme_tufte() 
-
-  
 ```
 
-
-```{r}
-
+``` r
 p <- ggplot() + geom_polygon(data = evs_map, 
                         aes(x = long, 
                             y = lat, 
@@ -119,19 +73,17 @@ p <- ggplot() + geom_polygon(data = evs_map,
 
 
 p + theme_info
-
-ggsave("./output/evs_2017_satisfaction.png", dpi = 500)
-
 ```
 
+![](README_files/figure-markdown_github/unnamed-chunk-3-1.png)
 
+``` r
+ggsave("./output/evs_2017_satisfaction.png", dpi = 500)
+```
 
+    ## Saving 7 x 5 in image
 
-
-```{r}
-
-
-
+``` r
 p <- ggplot() + 
   geom_polygon(data = evs_map,
                aes(x = long,
@@ -151,14 +103,17 @@ p <- ggplot() +
                              
 
 p + theme_info
-
-ggsave("./output/evs_2017_man_job.png", dpi = 500)
-
 ```
 
+![](README_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
+``` r
+ggsave("./output/evs_2017_man_job.png", dpi = 500)
+```
 
-```{r}
+    ## Saving 7 x 5 in image
+
+``` r
 p <- ggplot() + geom_polygon(data = evs_map, 
                         aes(x = long, 
                             y = lat, 
@@ -177,16 +132,17 @@ p <- ggplot() + geom_polygon(data = evs_map,
 
 
 p + theme_info
-
-ggsave("./output/evs_2017_left_right.png", dpi = 500)
-
-
 ```
 
+![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
+``` r
+ggsave("./output/evs_2017_left_right.png", dpi = 500)
+```
 
+    ## Saving 7 x 5 in image
 
-```{r}
+``` r
 p <- ggplot() + geom_polygon(data = evs_map, 
                         aes(x = long, 
                             y = lat, 
@@ -205,14 +161,17 @@ p <- ggplot() + geom_polygon(data = evs_map,
 
 
 p + theme_info
-
-ggsave("./output/evs_2017_tax.png", dpi = 500)
-
-
 ```
 
+![](README_files/figure-markdown_github/unnamed-chunk-6-1.png)
 
-```{r}
+``` r
+ggsave("./output/evs_2017_tax.png", dpi = 500)
+```
+
+    ## Saving 7 x 5 in image
+
+``` r
 p <- ggplot() + geom_polygon(data = evs_map, 
                         aes(x = long, 
                             y = lat, 
@@ -231,14 +190,17 @@ p <- ggplot() + geom_polygon(data = evs_map,
 
 
 p + theme_info
-
-ggsave("./output/evs_2017_democracy.png", dpi = 500)
-
-
 ```
 
+![](README_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
-```{r}
+``` r
+ggsave("./output/evs_2017_democracy.png", dpi = 500)
+```
+
+    ## Saving 7 x 5 in image
+
+``` r
 p <- ggplot() + geom_polygon(data = evs_map, 
                         aes(x = long, 
                             y = lat, 
@@ -257,13 +219,17 @@ p <- ggplot() + geom_polygon(data = evs_map,
 
 
 p + theme_info
-
-ggsave("./output/evs_2017_vote.png", dpi = 500)
-
-
 ```
 
-```{r}
+![](README_files/figure-markdown_github/unnamed-chunk-8-1.png)
+
+``` r
+ggsave("./output/evs_2017_vote.png", dpi = 500)
+```
+
+    ## Saving 7 x 5 in image
+
+``` r
 p <- ggplot() + geom_polygon(data = evs_map, 
                         aes(x = long, 
                             y = lat, 
@@ -282,16 +248,17 @@ p <- ggplot() + geom_polygon(data = evs_map,
 
 
 p + theme_info
-
-ggsave("./output/evs_2017_immigrants.png", dpi = 500)
-
-
-
 ```
 
+![](README_files/figure-markdown_github/unnamed-chunk-9-1.png)
 
+``` r
+ggsave("./output/evs_2017_immigrants.png", dpi = 500)
+```
 
-```{r}
+    ## Saving 7 x 5 in image
+
+``` r
 p <- ggplot() + geom_polygon(data = evs_map, 
                         aes(x = long, 
                             y = lat, 
@@ -310,8 +277,12 @@ p <- ggplot() + geom_polygon(data = evs_map,
 
 
 p + theme_info
-
-ggsave("./output/evs_2017_environment.png", dpi = 500)
-
-
 ```
+
+![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
+
+``` r
+ggsave("./output/evs_2017_environment.png", dpi = 500)
+```
+
+    ## Saving 7 x 5 in image
