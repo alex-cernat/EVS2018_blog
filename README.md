@@ -1,8 +1,13 @@
-This is an exercise showing what exciting research can be done with open software and open data. Here we are going to look at the pre-release of EVS 2018:
+This is an exercise showing what exciting research can be done with open
+software and open data. Here we are going to look at the pre-release of
+EVS 2018:
 
-EVS (2018): European Values Study 2017: Integrated Dataset (EVS 2017). GESIS Data Archive, Cologne. ZA7500 Data file Version 1.0.0, <doi:10.4232/1.13090>
+EVS (2018): European Values Study 2017: Integrated Dataset (EVS 2017).
+GESIS Data Archive, Cologne. ZA7500 Data file Version 2.0.0,
+<a href="doi:10.4232/1.13314" class="uri">doi:10.4232/1.13314</a>
 
-You can freely donwload the data here: <https://dbk.gesis.org/dbksearch/sdesc2.asp?no=7500&db=e&doi=10.4232/1.13090>
+You can freely donwload the data here:
+<a href="https://dbk.gesis.org/dbksearch/sdesc2.asp?no=7500&amp;db=e&amp;doi=10.4232/1.13314" class="uri">https://dbk.gesis.org/dbksearch/sdesc2.asp?no=7500&amp;db=e&amp;doi=10.4232/1.13314</a>
 
 ``` r
 # Clean data --------------------------------------------------------------
@@ -29,6 +34,19 @@ evs_small$cntry <- relabel(evs$country)
 # get world map data
 world <- map_data("world")
 
+# check if all names are in world data
+unique(evs_small$cntry) %in% unique(world$region)
+```
+
+    ##  [1]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+    ## [12]  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+    ## [23]  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+
+``` r
+# change names to fit with world data
+levels(evs_small$cntry)[25] <- "Slovakia"
+levels(evs_small$cntry)[30] <- "UK"
+
 
 # summarize data at country level and clean vote var.
 cntry_info <- evs_small %>% 
@@ -46,7 +64,7 @@ cntry_info <- evs_small %>%
 evs_map <- world %>% 
   left_join(cntry_info, by = c("region" = "cntry"))
 
-
+# make theme to use on all graphs
 theme_info <- 
       theme_tufte() +
   theme(axis.line = element_blank(), axis.text.x = element_blank(),
@@ -56,12 +74,11 @@ theme_info <-
 ```
 
 ``` r
-p <- ggplot() + geom_polygon(data = evs_map, 
-                        aes(x = long, 
-                            y = lat, 
-                            group = group,
-                            fill = v39),
-                        color = "white") + 
+p <- evs_map %>% 
+  mutate(Satisfaction = round(v39, 2)) %>% 
+  ggplot(aes(x = long, y = lat,
+             group = group, fill = Satisfaction)) + 
+           geom_polygon(color = "white") + 
     xlim(-25, 47.0) + ylim(35, 70) +
    labs(fill = "Satisfied",
        title = "Distribution of satisfaction",
@@ -71,11 +88,18 @@ p <- ggplot() + geom_polygon(data = evs_map,
                                   mean(cntry_info$v39), 
                                   max(cntry_info$v39)))) 
 
-
+# plot image
 p + theme_info
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-3-1.png)
+
+``` r
+# plot interactive version
+ggplotly(p + theme_info)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-3-2.png)
 
 ``` r
 ggsave("./output/evs_2017_satisfaction.png", dpi = 500)
@@ -84,13 +108,16 @@ ggsave("./output/evs_2017_satisfaction.png", dpi = 500)
     ## Saving 7 x 5 in image
 
 ``` r
-p <- ggplot() + 
-  geom_polygon(data = evs_map,
-               aes(x = long,
-                   y = lat,
-                   group = group,
-                   fill = v75),
-               color = "white") +
+htmlwidgets::saveWidget(ggplotly(p + theme_info),
+                        file = "evs_17_ly_satisfaction.html")
+```
+
+``` r
+p <- evs_map %>% 
+  mutate(Role = round(v75, 2)) %>% 
+  ggplot(aes(x = long, y = lat,
+             group = group, fill = Role)) + 
+  geom_polygon(color = "white") +
   xlim(-25, 47.0) + ylim(35, 70) +
   labs(x = "", y = "", fill = "Disagree strongly",
        title = "Man's job is to earn money, woman's job is to look after home and family",
@@ -108,18 +135,28 @@ p + theme_info
 ![](README_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
 ``` r
+ggplotly(p + theme_info)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-4-2.png)
+
+``` r
 ggsave("./output/evs_2017_man_job.png", dpi = 500)
 ```
 
     ## Saving 7 x 5 in image
 
 ``` r
-p <- ggplot() + geom_polygon(data = evs_map, 
-                        aes(x = long, 
-                            y = lat, 
-                            group = group,
-                            fill = v102),
-                        color = "white") + 
+htmlwidgets::saveWidget(ggplotly(p + theme_info),
+                        file = "evs_17_ly_job.html")
+```
+
+``` r
+p <- evs_map %>% 
+  mutate(Right = round(v102, 2)) %>% 
+  ggplot(aes(x = long, y = lat, 
+             group = group, fill = Right)) + 
+  geom_polygon(color = "white") + 
   xlim(-25, 47.0) + ylim(35, 70) +
   labs(x = "", y = "", fill = "Right",
        title = "Position on left-right scale",
@@ -137,13 +174,26 @@ p + theme_info
 ![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
 ``` r
+ggplotly(p + theme_info)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-5-2.png)
+
+``` r
 ggsave("./output/evs_2017_left_right.png", dpi = 500)
 ```
 
     ## Saving 7 x 5 in image
 
 ``` r
-p <- ggplot() + geom_polygon(data = evs_map, 
+htmlwidgets::saveWidget(ggplotly(p + theme_info),
+                        file = "evs_17_ly_right.html")
+```
+
+``` r
+p <- evs_map %>% 
+  mutate(Right = round(v102, 2)) %>%
+  ggplot() + geom_polygon(data = evs_map, 
                         aes(x = long, 
                             y = lat, 
                             group = group,
@@ -166,18 +216,28 @@ p + theme_info
 ![](README_files/figure-markdown_github/unnamed-chunk-6-1.png)
 
 ``` r
+ggplotly(p + theme_info)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-6-2.png)
+
+``` r
 ggsave("./output/evs_2017_tax.png", dpi = 500)
 ```
 
     ## Saving 7 x 5 in image
 
 ``` r
-p <- ggplot() + geom_polygon(data = evs_map, 
-                        aes(x = long, 
-                            y = lat, 
-                            group = group,
-                            fill = v142),
-                        color = "white") + 
+htmlwidgets::saveWidget(ggplotly(p + theme_info),
+                        file = "evs_17_ly_tax.html")
+```
+
+``` r
+p <- evs_map %>% 
+  mutate(Democracy = round(v142, 2)) %>%
+  ggplot(aes(x = long, y = lat,
+             group = group, fill = Democracy)) + 
+  geom_polygon(color = "white") + 
   xlim(-25, 47.0) + ylim(35, 70) +
   labs(x = "", y = "", fill = "Absolutely important",
        title = "Importance of democracy",
@@ -195,18 +255,28 @@ p + theme_info
 ![](README_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
 ``` r
+ggplotly(p + theme_info)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-7-2.png)
+
+``` r
 ggsave("./output/evs_2017_democracy.png", dpi = 500)
 ```
 
     ## Saving 7 x 5 in image
 
 ``` r
-p <- ggplot() + geom_polygon(data = evs_map, 
-                        aes(x = long, 
-                            y = lat, 
-                            group = group,
-                            fill = v171),
-                        color = "white") + 
+htmlwidgets::saveWidget(ggplotly(p + theme_info),
+                        file = "evs_17_ly_democracy.html")
+```
+
+``` r
+p <-  evs_map %>% 
+  mutate(Vote = round(v171, 2)) %>%
+  ggplot(aes(x = long, y = lat, 
+             group = group, fill = Vote)) + 
+  geom_polygon(color = "white") + 
   xlim(-25, 47.0) + ylim(35, 70) +
   labs(x = "", y = "", fill = "Always",
        title = "Usually vote at local elections",
@@ -224,18 +294,28 @@ p + theme_info
 ![](README_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
 ``` r
+ggplotly(p + theme_info)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-8-2.png)
+
+``` r
 ggsave("./output/evs_2017_vote.png", dpi = 500)
 ```
 
     ## Saving 7 x 5 in image
 
 ``` r
-p <- ggplot() + geom_polygon(data = evs_map, 
-                        aes(x = long, 
-                            y = lat, 
-                            group = group,
-                            fill = v184),
-                        color = "white") + 
+htmlwidgets::saveWidget(ggplotly(p + theme_info),
+                        file = "evs_17_ly_vote.html")
+```
+
+``` r
+p <- evs_map %>% 
+  mutate(Immigrants = round(v184, 2)) %>%
+  ggplot(aes(x = long, y = lat, 
+             group = group, fill = v184)) + 
+  geom_polygon(color = "white") + 
   xlim(-25, 47.0) + ylim(35, 70) +
   labs(x = "", y = "", fill = "Very good",
        title = "Impact of immigrants on country development",
@@ -253,18 +333,28 @@ p + theme_info
 ![](README_files/figure-markdown_github/unnamed-chunk-9-1.png)
 
 ``` r
+ggplotly(p + theme_info)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-9-2.png)
+
+``` r
 ggsave("./output/evs_2017_immigrants.png", dpi = 500)
 ```
 
     ## Saving 7 x 5 in image
 
 ``` r
-p <- ggplot() + geom_polygon(data = evs_map, 
-                        aes(x = long, 
-                            y = lat, 
-                            group = group,
-                            fill = v203),
-                        color = "white") + 
+htmlwidgets::saveWidget(ggplotly(p + theme_info),
+                        file = "evs_17_ly_immigrants.html")
+```
+
+``` r
+p <- evs_map %>% 
+  mutate(Enviornment = round(v203, 2)) %>%
+  ggplot(aes(x = long, y = lat, 
+             group = group, fill = Enviornment)) + 
+  geom_polygon(color = "white") + 
   xlim(-25, 47.0) + ylim(35, 70) +
   labs(x = "", y = "", fill = "Disagree strongly",
        title = "Environmental threats are exaggerated",
@@ -282,7 +372,18 @@ p + theme_info
 ![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
 ``` r
+ggplotly(p + theme_info)
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-10-2.png)
+
+``` r
 ggsave("./output/evs_2017_environment.png", dpi = 500)
 ```
 
     ## Saving 7 x 5 in image
+
+``` r
+htmlwidgets::saveWidget(ggplotly(p + theme_info),
+                        file = "evs_17_ly_enviornment.html")
+```
